@@ -46,9 +46,9 @@ class BSplineCurve7(Solution):
                         计算 当前这个个体的不可行度
         '''
         
-        self.const_Value[0] = self.__BSplineCurve.GetMaxD_Control("V")#速度约束
-        self.const_Value[1] = self.__BSplineCurve.GetMaxD_Control("A")#加速度约束
-        self.const_Value[2] = self.__BSplineCurve.GetMaxD_Control("J")#加加速度约束
+        self.const_Value[0] = self.BSplineCurve.GetMaxD_Control("V")#速度约束
+        self.const_Value[1] = self.BSplineCurve.GetMaxD_Control("A")#加速度约束
+        self.const_Value[2] = self.BSplineCurve.GetMaxD_Control("J")#加加速度约束
 
         
         for i in range(self.num_const):
@@ -66,12 +66,12 @@ class BSplineCurve7(Solution):
         
         for i in range(1,8):
             self.TList[i] =self.TList[i-1]+ self.attributes[i-1]
-        self.__BSplineCurve =  BSplineCurve(self.TList,7,self.pointList)
+        self.BSplineCurve =  BSplineCurve(self.TList,7,self.pointList)
         
-        self.__BSplineCurve.CalBSplineCurve()
-        self.objectives[0] = self.__BSplineCurve.GetTall()  #时间最小
-        self.objectives[1] = self.__BSplineCurve.GetE_J_Level("J")  #最平滑
-        self.objectives[2] = self.__BSplineCurve.GetE_J_Level("E")  #能量最小
+        self.BSplineCurve.CalBSplineCurve()
+        self.objectives[0] = self.BSplineCurve.GetTall()  #时间最小
+        self.objectives[1] = self.BSplineCurve.GetE_J_Level("J")  #最平滑
+        self.objectives[2] = self.BSplineCurve.GetE_J_Level("E")  #能量最小
         self.evaluate_Infeasible_Degree()
        
     def crossover(self, other):
@@ -117,7 +117,7 @@ if __name__ == '__main__':
  
         P.append(BSplineCurve7( [100,45,60], P_List1,TList[i]))
  
-    nsga2.run(P, 100,50)
+    nsga2.run(P, 100,150)
       
     csv_file = open('nsga2_out.csv', 'w')
       
@@ -133,16 +133,44 @@ if __name__ == '__main__':
     ListX= []
     ListY= []
     ListZ= []
+    
+    index =0
+    var = 0 
+    smin = 10000
     for e in P:
-        ListX.append(e.objectives[0]/100) 
-        ListY.append(e.objectives[1]) 
-        ListZ.append(e.objectives[2]) 
-        print "Time:"+str(e.objectives[0])+", 最平滑:"+str(e.objectives[1])+", 能量:"+str(e.objectives[2])+"\n"
         
-
-    pl = mlab.surf(ListX, ListY, ListZ, warp_scale="auto")
-    mlab.axes(xlabel='Time', ylabel='J', zlabel='E')
-    mlab.outline(pl)
-    mlab.show()
+        if smin >  e.objectives[0]:
+            smin = e.objectives[0]
+            index= var
+        var = var+1
+        print "Time:"+str(e.objectives[0])+", 最平滑:"+str(e.objectives[1])+", 能量:"+str(e.objectives[2])+"\n"
+    print smin,var
+#         ListX.append(e.objectives[0]) 
+#         ListY.append(e.objectives[1]*100) 
+#         ListZ.append(e.objectives[2]*100) 
+    
+    
+    DrawT_List = np.linspace(0, 1, 300)
+    NewList=[]
+    for t in DrawT_List:
+        NewList.append(P[index].objectives[0]*t)
+        
+    plt.figure(figsize=(8,8))
+    
+    plt.plot(P[index].TList,P_List1,"b*",label="org_point",linewidth=5)
+    plt.plot(NewList,P[index].BSplineCurve.GetT_PList(DrawT_List),"b-",label="point",color="red",linewidth=2)
+    plt.plot(NewList,P[index].BSplineCurve.GetT_VList(DrawT_List),"b-",label="V",color="green",linewidth=2)
+    plt.plot(NewList,P[index].BSplineCurve.GetT_AList(DrawT_List),"b-",label="A",color="black",linewidth=2)
+    plt.plot(NewList,P[index].BSplineCurve.GetT_JList(DrawT_List),"b-",label="J",color="blue",linewidth=2)
+    
+    plt.xlabel("Time(s)")
+    plt.ylabel("value")
+    plt.ylim(-200,200)
+    plt.legend()
+    plt.show()
+#     pl = mlab.surf(ListX, ListY, ListZ, warp_scale="auto")
+#     mlab.axes(xlabel='Time', ylabel='J', zlabel='E')
+#     mlab.outline(pl)
+#     mlab.show()
 
         

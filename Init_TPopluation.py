@@ -14,7 +14,7 @@ class Init_TPopluation(object):
     def __init__(self, Init_T_PopulationScal,Init_PopulationScal):
         self.__T_PopulationScal = Init_T_PopulationScal
         self.__T_PopulationList = []
-        RandomData = np.linspace(0, 100, 10000)
+        RandomData = np.linspace(0.1,10, 100)
         
         #保留2位小数
         RandomData = self.__Round(RandomData, 2)
@@ -22,12 +22,15 @@ class Init_TPopluation(object):
         
         Index = 0 
         while Index <Init_PopulationScal  :
-            Index=Index+1
-            TmpList = random.sample(RandomData,Init_T_PopulationScal)  
+            
+            TmpList = random.sample(RandomData,Init_T_PopulationScal) 
+            
+             
             TmpList = self.__Round(TmpList, 2)
             TmpList.sort();
             
             self.__T_PopulationList.append(TmpList)
+            Index=Index+1
         
 
             
@@ -51,5 +54,6 @@ class Init_TPopluation(object):
         return RetList
  
 if __name__ == '__main__':
-    mLogistic_Map_T = Init_TPopluation(10,100)
+    mLogistic_Map_T = Init_TPopluation(7,100)
+    print mLogistic_Map_T.T_Population()
     

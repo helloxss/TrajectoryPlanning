@@ -48,7 +48,7 @@ class BSplineCurve():
         self.__mK = K
         self.__mT_all = TList[len(TList)-1] - TList[0]
         self.__m_n = len(TList)-1
-        self.__m_integration_Region_List = np.linspace(0, 1, 300) #数值积分小区间
+        self.__m_integration_Region_List = np.linspace(0, 1, 50) #数值积分小区间
         
         logging.info(u"=============================================")
         logging.info(u">>now start cal and para will following that")
@@ -66,7 +66,7 @@ class BSplineCurve():
         logging.info(u"=============================================\n")
         
         #################处理坐标点矩阵################
-        self.__mP_OrgArray = PList
+        #self.__mP_OrgArray = PList
         for e in PList:
             Tmp_List =[e]
             self.__mP_Array.append(Tmp_List)
@@ -373,17 +373,22 @@ class BSplineCurve():
         Left = self.__mK
         Right = self.__m_n+self.__mK
         Mid = (Left + Right)/2
-
+ 
+        #print u, self.__mU_List[self.__m_n+self.__mK] 
+       
         if u == self.__mU_List[self.__m_n+self.__mK]: return self.__m_n+self.__mK-1
-        
+        if u == 1.0: return self.__m_n+self.__mK-1  #保证1.0这个点事不会死循环
+         
         while  u < self.__mU_List[Mid] or u >= self.__mU_List[Mid+1] :
             if u < self.__mU_List[Mid]:
                 Right = Mid 
             else :
                 Left = Mid
             Mid = (Left + Right)/2 
+           
         return Mid
-    
+
+
     '''
     @Name    : __GetJControl
     @Para    : 
@@ -436,6 +441,7 @@ class BSplineCurve():
     '''          
     def __Get_JPoint(self,T): 
         IndexT = self.__SearchIndex(T)
+
         PointRet = 0.0
         C_NRet = self.__CalN(IndexT,T,self.__mU_List,self.__mK-3)
 
@@ -502,13 +508,14 @@ class BSplineCurve():
             List=self.__mConttol_D_Array_J
             
         for index ,e in enumerate(List):
-            logging.info(u">>Control_D_%s(%d) is %f ",V_A_J,index,e)
+            
             if index == 0:
                 MaxD = abs(e)
                 continue
             elif abs(e) > MaxD:
                 MaxD = abs(e)     
-                   
+                
+        logging.info(u">>MAX_Control_D_%s is %f ",V_A_J,MaxD)           
         return MaxD
     
     
@@ -555,8 +562,11 @@ class BSplineCurve():
     def GetT_JList(self,TList):
        
         J_List = []
+
         for e in TList:
+
             J_List.append( self.__Get_JPoint(e) )
+  
         return J_List
     
     '''
@@ -566,20 +576,23 @@ class BSplineCurve():
     ''' 
     def GetE_J_Level(self,J_E):
         
+        
         A_List = []
         if J_E == "J" :
             A_List = self.GetT_JList(self.__m_integration_Region_List)
         elif J_E == "E":
             A_List = self.GetT_AList(self.__m_integration_Region_List)
+
         
         h = self.__m_integration_Region_List[1]-self.__m_integration_Region_List[0]
         s = (A_List[0]+A_List[len(A_List)-1])/2
+        
         
         for index,e in enumerate(A_List):
             if index == 0  : continue
             elif index == len(A_List)-1 :break
             s += ( e*e )
-        
+
         return (h*s)/(self.__mT_all)
       
     '''

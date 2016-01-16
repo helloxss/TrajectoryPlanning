@@ -1,3 +1,4 @@
+# _*_ coding:utf-8 _*_
 '''
 Created on 10/01/2011
 
@@ -22,9 +23,13 @@ class T1Solution(Solution):
         self.xmin = 0.0
         self.xmax = 1.0
         
-        self.const_LimitValue[0] = 12
-        self.const_LimitValue[1] = 3.5
-        self.const_LimitValue[2] = 0.8
+        self.const_LimitValue[0] = 15
+        self.const_LimitValue[1] = 5
+        self.const_LimitValue[2] = 2
+
+        
+
+        
         self.Infeasible_Degree = 0.0
         self.Infeasible_Degree_Threshold = 0.0
         
@@ -52,6 +57,9 @@ class T1Solution(Solution):
         self.const_Value[0] = self.sum
         self.const_Value[1] = self.objectives[1]
         self.const_Value[2] = self.objectives[0]
+
+        
+
         
         for i in range(self.num_const):
             if ( self.const_LimitValue[i] -self.const_Value[i] ) > 0 :
@@ -61,7 +69,7 @@ class T1Solution(Solution):
         
     def crossover(self, other):
         '''
-        Crossover of T1 solutions.
+        Crossover of T1 solutions. 交叉
         '''
         child_solution = T1Solution()
         
@@ -72,39 +80,40 @@ class T1Solution(Solution):
     
     def mutate(self):
         '''
-        Mutation of T1 solution.
+        Mutation of T1 solution. 变异
         '''
         self.attributes[random.randint(0, 29)] = random.random()
 
     
 if __name__ == '__main__':
-    nsga2 = NSGAII(2, 0.1, 0.2)
+    nsga2 = NSGAII(2, 0.5, 0.7)
     
     P = []
     for i in range(100):
         P.append(T1Solution())
-
-    
-    nsga2.run(P, 100,100)
-    
-    csv_file = open('nsga2_out.csv', 'w')
-    
-    
-    for i in range(len(P)):
-        csv_file.write("" + str(P[i].objectives[0]) + ", " + str(P[i].objectives[1]) +"\n")
         
-    csv_file.close()
-    
-    import numpy as np
-    import matplotlib.pyplot as plt
-    ListX= []
-    ListY= []
-    for e in P:
-        ListX.append(e.objectives[0]) 
-        ListY.append(e.objectives[1]) 
-        print "sum:"+str(e.const_Value[0])+", objectives[1]:"+str(e.const_Value[1])+"\n"
-      
-    plt.figure(figsize=(8,8))
-    plt.plot(ListX,ListY,"b*",label="org_point",linewidth=5)
-    plt.legend()
-    plt.show()
+#    
+#     
+#     nsga2.run(P, 100,200)
+#     
+#     csv_file = open('nsga2_out.csv', 'w')
+#     
+#     
+#     for i in range(len(P)):
+#         csv_file.write("" + str(P[i].objectives[0]) + ", " + str(P[i].objectives[1]) +"\n")
+#         
+#     csv_file.close()
+#     
+#     import numpy as np
+#     import matplotlib.pyplot as plt
+#     ListX= []
+#     ListY= []
+#     for e in P:
+#         ListX.append(e.objectives[0]) 
+#         ListY.append(e.objectives[1]) 
+#         print "sum:"+str(e.const_Value[0])+", objectives[1]:"+str(e.const_Value[1])+", objectives[0]:"+str(e.const_Value[2])+"\n"
+#       
+#     plt.figure(figsize=(8,8))
+#     plt.plot(ListX,ListY,"b*",label="org_point",linewidth=5)
+#     plt.legend()
+#     plt.show()

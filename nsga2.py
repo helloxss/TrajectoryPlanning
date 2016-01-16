@@ -90,18 +90,17 @@ def crowded_comparison(s1, s2):
     '''
     Compare the two solutions based on crowded comparison.
     '''
-    
-    if s1.rank < s2.rank:
-        return 1
-        
-    elif s1.rank > s2.rank:
-        return -1
-    
-    elif s1.Infeasible_Degree > s2.Infeasible_Degree:
+    if s1.Infeasible_Degree > s2.Infeasible_Degree: #S1不可行阈值比S2来得大 ，就证明 S1不是好解
         return -1
         
     elif s1.Infeasible_Degree < s2.Infeasible_Degree:
         return 1
+    
+    elif s1.rank < s2.rank:
+        return 1
+        
+    elif s1.rank > s2.rank:
+        return -1
         
     elif s1.distance > s2.distance:
         return 1
