@@ -6,6 +6,8 @@ Created on 07/01/2011
 '''
 
 import sys, random
+from sphinx.domains import Domain
+import logging
 
 class Solution:
     '''
@@ -18,6 +20,9 @@ class Solution:
         '''
         self.num_objectives = num_objectives
         self.num_const      = num_const
+        self.R_Dominance_Threshold = 0
+
+        
         self.const_LimitValue   = [0]*num_const   #各个约束的极限值
         self.const_Value        = [0]*num_const   #各个约束的当前值
         
@@ -28,7 +33,9 @@ class Solution:
         self.attributes = []
         self.rank = sys.maxint
         self.distance = 0.0
-        
+    
+    
+       
     def evaluate_solution(self):
         '''
         Evaluate solution, update objectives values.
@@ -63,19 +70,38 @@ class Solution:
 #         return dominates
         for i in range(len(self.objectives)):
             
+            if  self.Infeasible_Degree  <   self.Infeasible_Degree_Threshold        and \
+                other.Infeasible_Degree >   other.Infeasible_Degree_Threshold:#当前解可行，其他解不可行
+                return True 
             
-           
-            if self.Infeasible_Degree <self.Infeasible_Degree_Threshold and other.Infeasible_Degree < other.Infeasible_Degree_Threshold:  #如果通过了约束
+            elif    other.Infeasible_Degree < other.Infeasible_Degree_Threshold     and \
+                    self.Infeasible_Degree  > self.Infeasible_Degree_Threshold:#当前解不可行，其他解可行
+                return False 
+            elif    other.Infeasible_Degree > other.Infeasible_Degree_Threshold     and \
+                    self.Infeasible_Degree  > self.Infeasible_Degree_Threshold      and \
+                    self.Infeasible_Degree  >= other.Infeasible_Degree: #都不可行，是但是可行度大于其他解
+                return False
+            
+            elif    other.Infeasible_Degree > other.Infeasible_Degree_Threshold     and \
+                    self.Infeasible_Degree  > self.Infeasible_Degree_Threshold      and \
+                    self.Infeasible_Degree  <= other.Infeasible_Degree: #都不可行，是但是可行度小于其他解
+                return True
+            
+            elif    self.Infeasible_Degree  < self.Infeasible_Degree_Threshold      and \
+                    other.Infeasible_Degree < other.Infeasible_Degree_Threshold:  #如果通过了约束
+                
                 if self.objectives[i] > other.objectives[i]:
                     return False
                      
                 elif self.objectives[i] < other.objectives[i]:
                     dominates = True
-                    
-            elif self.Infeasible_Degree <self.Infeasible_Degree_Threshold and other.Infeasible_Degree > other.Infeasible_Degree_Threshold:
-                dominates = True
-            elif other.Infeasible_Degree < other.Infeasible_Degree_Threshold and self.Infeasible_Degree <self.Infeasible_Degree_Threshold:
-                dominates = False
+                
+        
+        if  dominates == False:
+            
+            Dist = (self.R_Dist-other.R_Dist)/(self.MaxR_Dist-other.MinR_Dist)
+            if Dist < self.R_Dominance_Threshol:
+                return True
          
         return dominates
         
@@ -129,7 +155,7 @@ class NSGAII:
         self.Infeasible_Degree_Threshold = 0.0
         random.seed();
         
-    def run(self, P, population_size, num_generations):
+    def run(self, P, population_size, num_generations,g_Point):
         '''
         Run NSGA-II. 
         '''
@@ -146,7 +172,32 @@ class NSGAII:
             R.extend(P)
             R.extend(Q)
             
-            fronts = self.fast_nondominated_sort(R) #bush2582 注 . 计算出非支配排序层，每个层是一个list list中保存着各个个体
+            #计算R支配的值
+            Max_Objectives_Values = [-float('inf')]*len(R[0].objectives)
+            Min_Objectives_Values = [ float('inf')]*len(R[0].objectives)
+            
+            
+            for Individual in R:
+                for i in range( len(Individual.objectives) ):
+                    if Max_Objectives_Values[i] < Individual.objectives[i]:
+                        Max_Objectives_Values[i] = Individual.objectives[i]
+                        
+                    if Min_Objectives_Values[i]> Individual.objectives[i]:
+            
+                        Min_Objectives_Values[i] = Individual.objectives[i]
+ 
+            
+            self.MaxR_Dist = (-float('inf'))
+            self.MinR_Dist = float('inf')
+            for Individual in R:
+                Individual.Cal_R_Dominance_Value(g_Point,Max_Objectives_Values,Min_Objectives_Values)
+                if  self.MaxR_Dist < Individual.R_Dist:
+                    self.MaxR_Dist = Individual.R_Dist
+                
+                if  self.MinR_Dist > Individual.R_Dist:
+                    self.MinR_Dist = Individual.R_Dist
+                
+            self.R_Dominance_Threshol = 1.0- (i*1.0)/num_generations
             
 
             #计算不可行度阈值
@@ -154,8 +205,19 @@ class NSGAII:
                 self.Infeasible_Degree_Threshold += Individual.Infeasible_Degree
             self.Infeasible_Degree_Threshold = (1.0/(i+1))*self.Infeasible_Degree_Threshold/(2*population_size)
             
+            #填充计算需要的各个数据
             for Individual in R:
                 Individual.Infeasible_Degree_Threshold = self.Infeasible_Degree_Threshold
+                Individual.MinR_Dist =  self.MinR_Dist
+                Individual.MaxR_Dist =  self.MaxR_Dist
+                Individual.R_Dominance_Threshol = self.R_Dominance_Threshol
+                
+            
+            
+            
+            
+            
+            fronts = self.fast_nondominated_sort(R) #bush2582 注 . 计算出非支配排序层，每个层是一个list list中保存着各个个体
             
             del P[:]#删除种群
             
@@ -242,7 +304,7 @@ class NSGAII:
                 if random.random() < self.mutation_rate:
                     child_solution.mutate()
                     
-                child_solution.evaluate_solution()
+                child_solution.evaluate_solution()#计算子种群适应度
                 
                 Q.append(child_solution)
         
@@ -267,13 +329,13 @@ class NSGAII:
                 if p == q:
                     continue
                 
-                if p >> q:
+                if p >> q:              #如果品p 支配 q
                     S[p].append(q)
                 
-                elif p << q:
+                elif p << q:            #如果 q 支配 p
                     n[p] += 1
             
-            if n[p] == 0:
+            if n[p] == 0:#如果q和p无法比较支配关系的话，p就不会进入 S[]中
                 p.rank = 1              #bush2582添加
                 fronts[1].append(p)
         
@@ -301,7 +363,7 @@ class NSGAII:
         '''
         for p in front:
             p.distance = 0
-        
+        logging.info(u"front Data---------------" )
         for obj_index in range(self.num_objectives):        #对于每个目标函数
             self.sort_objective(front, obj_index)           #基于这个目标函数对种群进行排序
             
@@ -312,8 +374,23 @@ class NSGAII:
 #             for i in range(1, len(front) - 1):
 #                   
 #                 front[i].distance += (front[i + 1].distance - front[i - 1].distance)
+            
+            for e in front:
+                logging.info(u"e.objectives[%d] =%f in front.",obj_index,e.objectives[obj_index])
+                
             Max_objectives = front[len(front)-1].objectives[obj_index]
-            Min_objectives = front[0].objectives[obj_index]
+            Min_objectives = front[0].objectives[obj_index]  
+            
+            if (Max_objectives-Min_objectives) == 0 :
+                Max_objectives = front[len(front)-1].objectives[obj_index]
+                Min_objectives = 0
+#                 
+#                 print "Max_objectives:"+str(Max_objectives)
+#                 print "Min_objectives:"+str(Min_objectives) 
+#             else :
+#                 Max_objectives = front[len(front)-1].objectives[obj_index]
+#                 Min_objectives = 0
+            
             for i in range(1, len(front) - 1):
                 front[i].distance +=( (front[i + 1].objectives[obj_index] - front[i - 1].objectives[obj_index]) )/(Max_objectives-Min_objectives)
 
