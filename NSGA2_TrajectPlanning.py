@@ -36,10 +36,10 @@ class BSplineCurve7(Solution):
         self.Infeasible_Degree = 0.0            #不可行度
         self.Infeasible_Degree_Threshold = 0.0  #不可行度阈值
         
-        self.R_Dist = 0.0
-        self.MinR_Dist = 0.0
-        self.MaxR_Dist = 0.0
-        self.R_Dominance_Threshol = 0.0
+        self.R_Dist = 0.0                       #计算R支配的距离
+        self.MinR_Dist = 0.0                    #R支配最大距离
+        self.MaxR_Dist = 0.0                    #R支配最小距离
+        self.R_Dominance_Threshol = 0.0         #R支配阈值
         
     def Cal_R_Dominance_Value(self,g_Point,Max_Objectives_Values,Min_Objectives_Values):
         for i in range(len(self.objectives)):
@@ -99,7 +99,7 @@ class BSplineCurve7(Solution):
         '''
         mutate_value = 0
         while mutate_value == 0.0: #保证不会出现0值
-            mutate_value = (random.random()*10)
+            mutate_value = (random.random()*7)
         self.attributes[random.randint(0, len(self.attributes)-1)] = mutate_value
         
         
@@ -129,11 +129,11 @@ if __name__ == '__main__':
      
     TList = mInit_TPopluation.T_Population()
     P = []
-    for i in range(200):
+    for i in range(100):
  
         P.append(BSplineCurve7( [110,80,80], PList,TList[i]))
  
-    nsga2.run(P, 200,20,[16,6,11])
+    nsga2.run(P, 100,100,[16,6,11])
       
     csv_file = open('nsga2_out.csv', 'w')
       
@@ -145,7 +145,7 @@ if __name__ == '__main__':
       
     import numpy as np
     import matplotlib.pyplot as plt
-    from mayavi import mlab
+    from mpl_toolkits.mplot3d import Axes3D
     ListX= []
     ListY= []
     ListZ= []
@@ -154,7 +154,7 @@ if __name__ == '__main__':
     var = 0 
     smin = 10000
     for e in P:
-        ListX.append(e.objectives[0]/100) 
+        ListX.append(e.objectives[0]) 
         ListY.append(e.objectives[1][0]) 
         ListZ.append(e.objectives[2][0]) 
         if smin >  e.objectives[0]:
@@ -185,18 +185,13 @@ if __name__ == '__main__':
     plt.ylabel("value")
     plt.ylim(-200,200)
     plt.legend()
-    plt.show()
     
-    #pl = mlab.surf(ListX, ListY, ListZ, warp_scale="auto")
-#     print ListX
-#     print ListY
-#     print ListZ
-#     f = mlab.figure()
-    pts = mlab.points3d(ListX, ListY, ListZ, scale_factor=0.2)
-    mlab.axes(xlabel='Time', ylabel='J', zlabel='E')
-    mlab.outline(pts)
-    mlab.show()
-#    
-# 
-# 
-#     mlab.show()
+    
+    fig = plt.figure()
+    ax = Axes3D(fig)
+    ax.scatter(ListX, ListY, ListZ)
+    ax.set_xlabel('Time')
+    ax.set_ylabel('J')
+    ax.set_zlabel('E')
+
+    plt.show()

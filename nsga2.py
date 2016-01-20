@@ -12,62 +12,56 @@ import logging
 class Solution:
     '''
     Abstract solution. To be implemented.
+            虚基类。其接口需要被实现
     '''
     
-    def __init__(self, num_objectives,num_const):
+    def __init__(self,num_objectives,num_const):
         '''
-        Constructor. Parameters: number of objectives. 
+        methonName:__init__
+        function:初始化
+        para:1、num_objectives 目标函数个数
+             2、num_const 约束个数
         '''
         self.num_objectives = num_objectives
         self.num_const      = num_const
-        self.R_Dominance_Threshold = 0
+
 
         
         self.const_LimitValue   = [0]*num_const   #各个约束的极限值
         self.const_Value        = [0]*num_const   #各个约束的当前值
+        self.objectives         = [0]*num_objectives #目标函数值列表
+        self.attributes         = []                #属性列表
         
-        self.objectives = []
-        for _ in range(num_objectives):
-            self.objectives.append(None)
-            
-        self.attributes = []
-        self.rank = sys.maxint
+        self.rank = sys.maxint  #rank等级
         self.distance = 0.0
     
     
        
     def evaluate_solution(self):
         '''
-        Evaluate solution, update objectives values.
+                        求取适应度 接口
         '''
         raise NotImplementedError("Solution class have to be implemented.")
     
     def crossover(self, other):
         '''
-        Crossover operator.
+                        交叉接口
         '''
         raise NotImplementedError("Solution class have to be implemented.")
     
     def mutate(self):
         '''
-        Mutation operator.
+                        变异操作接口
         '''
         raise NotImplementedError("Solution class have to be implemented.")
+    
+    #def Dominance(self,other):
     
     def __rshift__(self, other):
         '''
         True if this solution dominates the other (">>" operator).
         '''
         dominates = False
-#注：对不可行解进行定义，原版代码没有处理约束问题
-#         for i in range(len(self.objectives)):
-#             if self.objectives[i] > other.objectives[i]:
-#                 return False
-#                 
-#             elif self.objectives[i] < other.objectives[i]:
-#                 dominates = True
-#         
-#         return dominates
         for i in range(len(self.objectives)):
             
             if  self.Infeasible_Degree  <   self.Infeasible_Degree_Threshold        and \
