@@ -612,13 +612,9 @@ class BSplineCurve():
         
         logging.info(u"=============================================")
         self.__mU_List = self.__Convert_T_To_U(self.__mT_List,self.__mK)
-        logging.info(u"=============================================\n")
-        
-        logging.info(u"=============================================")
         self.__CreateC_N()
         logging.info(u"=============================================\n")
         
-        self.GetMaxD_Control("A")
         pass
         
     

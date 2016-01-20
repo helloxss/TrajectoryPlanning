@@ -9,7 +9,7 @@ Created on 07/01/2011
 import sys, random
 from sphinx.domains import Domain
 import logging
-from Decorator_CheckDominace import Decorator_CheckDominace
+
 class Solution:
     '''
     Abstract solution. To be implemented.
@@ -56,55 +56,7 @@ class Solution:
         '''
         raise NotImplementedError("Solution class have to be implemented.")
     
-   
-    
-    def __rshift__(self, other):
-        '''
-        True if this solution dominates the other (">>" operator).
-        '''
-        dominates = False
-        for i in range(len(self.objectives)):
-            
-            if  self.Infeasible_Degree  <   self.Infeasible_Degree_Threshold        and \
-                other.Infeasible_Degree >   other.Infeasible_Degree_Threshold:#当前解可行，其他解不可行
-                return True 
-            
-            elif    other.Infeasible_Degree < other.Infeasible_Degree_Threshold     and \
-                    self.Infeasible_Degree  > self.Infeasible_Degree_Threshold:#当前解不可行，其他解可行
-                return False 
-            elif    other.Infeasible_Degree > other.Infeasible_Degree_Threshold     and \
-                    self.Infeasible_Degree  > self.Infeasible_Degree_Threshold      and \
-                    self.Infeasible_Degree  >= other.Infeasible_Degree: #都不可行，是但是可行度大于其他解
-                return False
-            
-            elif    other.Infeasible_Degree > other.Infeasible_Degree_Threshold     and \
-                    self.Infeasible_Degree  > self.Infeasible_Degree_Threshold      and \
-                    self.Infeasible_Degree  <= other.Infeasible_Degree: #都不可行，是但是可行度小于其他解
-                return True
-            
-            elif    self.Infeasible_Degree  < self.Infeasible_Degree_Threshold      and \
-                    other.Infeasible_Degree < other.Infeasible_Degree_Threshold:  #如果通过了约束
-                
-                if self.objectives[i] > other.objectives[i]:
-                    return False
-                     
-                elif self.objectives[i] < other.objectives[i]:
-                    dominates = True
-                
-        
-        if  dominates == False:
-            
-            Dist = (self.R_Dist-other.R_Dist)/(self.MaxR_Dist-other.MinR_Dist)
-            if Dist < self.R_Dominance_Threshol:
-                return True
-         
-        return dominates
-        
-    def __lshift__(self, other):
-        '''
-        True if this solution is dominated by the other ("<<" operator).
-        '''
-        return other >> self
+
 
 
 def crowded_comparison(s1, s2):
@@ -138,17 +90,21 @@ class NSGAII:
     Implementation of NSGA-II algorithm.
     '''
     current_evaluated_objective = 0
-    Decorator_CheckDominace = Decorator_CheckDominace()
 
-    def __init__(self, num_objectives, mutation_rate=0.1, crossover_rate=1.0):
+
+    def __init__(self, num_objectives,ParaDict, mutation_rate=0.1, crossover_rate=1.0):
         '''
         Constructor. Parameters: number of objectives, mutation rate (default value 10%) and crossover rate (default value 100%). 
         '''
-        self.num_objectives = num_objectives
-        self.mutation_rate = mutation_rate
-        self.crossover_rate = crossover_rate
+        self.num_objectives = num_objectives #目标函数个数
+        self.mutation_rate  = mutation_rate  #变异率
+        self.crossover_rate = crossover_rate #交叉率
         
-        self.Infeasible_Degree_Threshold = 0.0
+        self.Infeasible_Degree_Threshold = 0.0 #不可行度
+        self.ParaDict = ParaDict
+        if self.ParaDict['Is_UseRDominace'] == True :
+            self.R_Dominance_Threshol = 0.0     #R支配阈值
+        
         random.seed();
         
     def run(self, P, population_size, num_generations,g_Point):
@@ -274,7 +230,8 @@ class NSGAII:
                 
     def make_new_pop(self, P):
         '''
-        Make new population Q, offspring of P. 
+        function:选择，交叉，变异，生成新的种群 
+        para:1、P 父种群
         '''
         Q = []
         
@@ -308,7 +265,7 @@ class NSGAII:
         
     def fast_nondominated_sort(self, P):
         '''
-        Discover Pareto fronts in P, based on non-domination criterion. 
+        function :快速检测个体间的支配关系，并进行非支配分层
         '''
         fronts = {}
         
@@ -325,18 +282,12 @@ class NSGAII:
                 if p == q:
                     continue
                 
-#                 if p >> q:              #如果品p 支配 q
-#                     S[p].append(q)
-#                 
-#                 elif p << q:            #如果 q 支配 p
-#                     n[p] += 1
-                    
                 if self.Is_Dominance(p,q) == True:              #如果品p 支配 q
                     S[p].append(q)
                 
                 elif self.Is_Dominance(p,q) == True:            #如果 q 支配 p
                     n[p] += 1
-            
+                    
             if n[p] == 0:#如果q和p无法比较支配关系的话，p就不会进入 S[]中
                 p.rank = 1              #bush2582添加
                 fronts[1].append(p)
@@ -389,9 +340,7 @@ class NSGAII:
  
 
 
-    
-    @Decorator_CheckDominace.Is_Violate_Constraint
-    @Decorator_CheckDominace.Is_R_Dominace
+
     def Is_Dominance(self,Fir_Individual,Sec_Individual):
         '''
         funtion    :非支配排序基础的比较支配关系的函数

@@ -7,10 +7,11 @@ Created on 2016年1月12日
 import random, math
 from nsga2 import Solution
 from nsga2 import NSGAII
-from BSplineCurve import BSplineCurve
+from BSplineCurve_Package.BSplineCurve import BSplineCurve
 from Init_TPopluation import Init_TPopluation
 import logging
-
+from NSGA_II_Package.NSGA_II import NSGA_II
+from TrajectoryInit.NSGA_II_Package.NSGA_II_With_Constraint_And_R_Dominance import NSGA_II_With_Constraint_And_R_Dominance
 class BSplineCurve7(Solution):
     '''
     7次B样条轨迹规划
@@ -104,7 +105,8 @@ class BSplineCurve7(Solution):
         
         
 if __name__ == '__main__':
-    nsga2 = NSGAII(3, 0.2, 0.7)
+    
+    nsga2 = NSGA_II_With_Constraint_And_R_Dominance(3,0.2,1,TargetPoint=[16,8,8])
  
     mInit_TPopluation = Init_TPopluation(8,200)
      
@@ -133,15 +135,9 @@ if __name__ == '__main__':
  
         P.append(BSplineCurve7( [110,80,80], PList,TList[i]))
  
-    nsga2.run(P, 10,10,[16,6,11])
+    P = nsga2.run(P, 100,100)
       
-    csv_file = open('nsga2_out.csv', 'w')
-      
-      
-    for i in range(len(P)):
-        csv_file.write("" + str(P[i].objectives[0]) + ", " + str(P[i].objectives[1]) +"\n")
-          
-    csv_file.close()
+
       
     import numpy as np
     import matplotlib.pyplot as plt
