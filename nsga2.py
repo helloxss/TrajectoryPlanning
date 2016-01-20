@@ -1,3 +1,4 @@
+
 # _*_ coding:utf-8 _*_
 '''
 Created on 07/01/2011
@@ -8,7 +9,7 @@ Created on 07/01/2011
 import sys, random
 from sphinx.domains import Domain
 import logging
-
+from Decorator_CheckDominace import Decorator_CheckDominace
 class Solution:
     '''
     Abstract solution. To be implemented.
@@ -55,7 +56,7 @@ class Solution:
         '''
         raise NotImplementedError("Solution class have to be implemented.")
     
-    #def Dominance(self,other):
+   
     
     def __rshift__(self, other):
         '''
@@ -137,6 +138,7 @@ class NSGAII:
     Implementation of NSGA-II algorithm.
     '''
     current_evaluated_objective = 0
+    Decorator_CheckDominace = Decorator_CheckDominace()
 
     def __init__(self, num_objectives, mutation_rate=0.1, crossover_rate=1.0):
         '''
@@ -323,10 +325,16 @@ class NSGAII:
                 if p == q:
                     continue
                 
-                if p >> q:              #如果品p 支配 q
+#                 if p >> q:              #如果品p 支配 q
+#                     S[p].append(q)
+#                 
+#                 elif p << q:            #如果 q 支配 p
+#                     n[p] += 1
+                    
+                if self.Is_Dominance(p,q) == True:              #如果品p 支配 q
                     S[p].append(q)
                 
-                elif p << q:            #如果 q 支配 p
+                elif self.Is_Dominance(p,q) == True:            #如果 q 支配 p
                     n[p] += 1
             
             if n[p] == 0:#如果q和p无法比较支配关系的话，p就不会进入 S[]中
@@ -353,39 +361,49 @@ class NSGAII:
         
     def crowding_distance_assignment(self, front):
         '''
-        Assign a crowding distance for each solution in the front. 
+        function  :对于每一个输入的前沿，进行计算拥挤度的操作
+        para      :1、front 前沿 
         '''
+        #对前沿每个个体的拥挤度赋0
         for p in front:
             p.distance = 0
-        logging.info(u"front Data---------------" )
+            
         for obj_index in range(self.num_objectives):        #对于每个目标函数
             self.sort_objective(front, obj_index)           #基于这个目标函数对种群进行排序
             
             front[0].distance = float('inf')                #bush2582注 令边界的个体拥挤度无穷大
             front[len(front) - 1].distance = float('inf')
             
-#注原版中，跟实际算法不符，实际算法要求是第i+1个点 的所有目标值函数的和减去第i个点的所有目标值函数的和
-#             for i in range(1, len(front) - 1):
-#                   
-#                 front[i].distance += (front[i + 1].distance - front[i - 1].distance)
-            
-            for e in front:
-                logging.info(u"e.objectives[%d] =%f in front.",obj_index,e.objectives[obj_index])
                 
             Max_objectives = front[len(front)-1].objectives[obj_index]
             Min_objectives = front[0].objectives[obj_index]  
             
-            if (Max_objectives-Min_objectives) == 0 :
+            if (Max_objectives-Min_objectives) == 0 :   #如果值一样。为了防止除0需要处理下
                 Max_objectives = front[len(front)-1].objectives[obj_index]
                 Min_objectives = 0
-#                 
-#                 print "Max_objectives:"+str(Max_objectives)
-#                 print "Min_objectives:"+str(Min_objectives) 
-#             else :
-#                 Max_objectives = front[len(front)-1].objectives[obj_index]
-#                 Min_objectives = 0
-            
+
+            #计算拥挤度
             for i in range(1, len(front) - 1):
                 front[i].distance +=( (front[i + 1].objectives[obj_index] - front[i - 1].objectives[obj_index]) )/(Max_objectives-Min_objectives)
 
+ 
 
+
+    
+    @Decorator_CheckDominace.Is_Violate_Constraint
+    @Decorator_CheckDominace.Is_R_Dominace
+    def Is_Dominance(self,Fir_Individual,Sec_Individual):
+        '''
+        funtion    :非支配排序基础的比较支配关系的函数
+        para       :1、Fir_Individual 被比较的第一个个体（要求其必须继承slution类）
+                    2、Sec_Individual 被比较的第二个个体（要求其必须继承slution类）
+        '''
+        dominates = False
+        
+        for i in range(self.num_objectives):
+            if Fir_Individual.objectives[i] > Sec_Individual.objectives[i]:
+                    return False
+                     
+            elif Fir_Individual.objectives[i] < Sec_Individual.objectives[i]:
+                    dominates = True
+        return dominates

@@ -133,7 +133,7 @@ if __name__ == '__main__':
  
         P.append(BSplineCurve7( [110,80,80], PList,TList[i]))
  
-    nsga2.run(P, 100,100,[16,6,11])
+    nsga2.run(P, 10,10,[16,6,11])
       
     csv_file = open('nsga2_out.csv', 'w')
       
