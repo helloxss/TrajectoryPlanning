@@ -6,7 +6,7 @@ Created on 2015年12月19日
 @function  : 非均匀K次B样条曲线类（好吧。。。我支持了7次(。・＿・。)ﾉ）
 '''
 import logging
-from LoadConfig import Config
+#from LoadConfig import Config
 import numpy as np
 import matplotlib.pyplot as plt
 class BSplineCurve():
@@ -446,7 +446,7 @@ class BSplineCurve():
         C_NRet = self.__CalN(IndexT,T,self.__mU_List,self.__mK-3)
 
         for index_CN,e in enumerate(C_NRet):
-            PointRet += self.__mConttol_D_Array_J[IndexT-self.__mK+index_CN]*e
+            PointRet += self.__mConttol_D_Array_J[IndexT-self.__mK+index_CN][0]*e
         return PointRet
     
     '''
@@ -460,7 +460,7 @@ class BSplineCurve():
         C_NRet = self.__CalN(IndexT,T,self.__mU_List,self.__mK-2)
 
         for index_CN,e in enumerate(C_NRet):
-            PointRet += self.__mConttol_D_Array_A[IndexT-self.__mK+index_CN]*e
+            PointRet += self.__mConttol_D_Array_A[IndexT-self.__mK+index_CN][0]*e
         return PointRet
     
     '''
@@ -473,7 +473,7 @@ class BSplineCurve():
         PointRet = 0.0
         C_NRet = self.__CalN(IndexT,T,self.__mU_List,self.__mK-1)
         for index_CN,e in enumerate(C_NRet):
-            PointRet += self.__mConttol_D_Array_V[IndexT-self.__mK+index_CN]*e
+            PointRet += self.__mConttol_D_Array_V[IndexT-self.__mK+index_CN][0]*e
         return PointRet
         
     '''
@@ -489,7 +489,8 @@ class BSplineCurve():
                              self.__mU_List,
                              self.__mK)
         for index_CN,e in enumerate(C_NRet):
-            PointRet += self.__mControl_D_Array[IndexT-self.__mK+index_CN]*e
+            PointRet += self.__mControl_D_Array[IndexT-self.__mK+index_CN][0]*e
+            
         return PointRet
     
     '''
@@ -515,7 +516,11 @@ class BSplineCurve():
             elif abs(e) > MaxD:
                 MaxD = abs(e)     
                 
-        logging.info(u">>MAX_Control_D_%s is %f ",V_A_J,MaxD)           
+        logging.info(u">>MAX_Control_D_%s is %f ",V_A_J,MaxD)  
+        
+#         if  V_A_J == "A" or  V_A_J == "V"   :    
+#             return MaxD-20
+    
         return MaxD
     
     
@@ -593,6 +598,8 @@ class BSplineCurve():
             elif index == len(A_List)-1 :break
             s += ( e*e )
 
+            
+          
         return (h*s)/(self.__mT_all)
       
     '''

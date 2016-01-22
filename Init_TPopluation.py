@@ -14,7 +14,7 @@ class Init_TPopluation(object):
     def __init__(self, Init_T_PopulationScal,Init_PopulationScal):
         self.__T_PopulationScal = Init_T_PopulationScal
         self.__T_PopulationList = []
-        RandomData = np.linspace(0.1,7, 100)
+        RandomData = np.linspace(0.01,3, 200)
         
         #保留2位小数
         RandomData = self.__Round(RandomData, 2)

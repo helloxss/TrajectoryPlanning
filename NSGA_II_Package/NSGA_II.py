@@ -32,14 +32,9 @@ class NSGA_II(object):
         #评价适应度
         for e in Init_Population:
             e.evaluate_solution()
-        #分层并计算拥挤度
-        fronts = self.fast_nondominated_sort(Init_Population ) 
-        for front in fronts.values():
-            if len(front) == 0:
-                break
-            self.crowding_distance_assignment(front);
+        
         #新种群
-        New_Population = self.make_new_pop(Init_Population)
+        New_Population = Init_Population[:]
         Population = []
         for i in range(num_generations):
             Select_Pool =[]

@@ -49,17 +49,19 @@ class Decorator_OtherDefine_NSGAII(object):
         function:装饰器，用于检测R支配
         '''
         def wrapper(*args, **kw):
-            if func(*args, **kw) == False: #如果检测过后发现并没有支配关系，就做R支配检测
-                MaxR_Dist = args[0].MaxR_Dist
-                MinR_Dist = args[0].MinR_Dist
-                Fir_Individual_R_Dist = args[1].R_Dist
-                Sec_Individual_R_Dist = args[2].R_Dist
-                
-                Dist = (Fir_Individual_R_Dist-Sec_Individual_R_Dist)/(MaxR_Dist-MinR_Dist)
-                if Dist < args[0].R_Dominance_Threshol:
-                    return True
-                else:
-                    return False
+            #if func(*args, **kw) == False: #如果检测过后发现并没有支配关系，就做R支配检测
+            MaxR_Dist = args[0].MaxR_Dist
+            MinR_Dist = args[0].MinR_Dist
+
+            Fir_Individual_R_Dist = args[1].R_Dist
+            Sec_Individual_R_Dist = args[2].R_Dist
+            
+            Dist = (Fir_Individual_R_Dist-Sec_Individual_R_Dist)/(MaxR_Dist-MinR_Dist)
+            if Dist < args[0].R_Dominance_Threshol:
+                return True
+            else:
+                return False
+            return func(*args, **kw)
         return wrapper   
     
     def Crowded_comparison_Constraint(self,func):

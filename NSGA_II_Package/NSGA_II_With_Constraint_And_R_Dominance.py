@@ -14,6 +14,10 @@ class NSGA_II_With_Constraint_And_R_Dominance(NSGA_II):
     Decorator_OtherDefine_NSGAII = Decorator_OtherDefine_NSGAII()
 
     def __init__(self,num_objectives, mutation_rate=0.1, crossover_rate=1.0,TargetPoint=[]):
+        '''
+        function:初始化
+        para：1、num_objectives 目标函数个数  2、mutation_rate 变异率  3、crossover_rate 交叉率 4、TargetPoint 目标点
+        '''
         NSGA_II.__init__(self,num_objectives,mutation_rate,crossover_rate)
         NSGA_II.Is_Dominance_Handle         = self.Is_Dominance
         NSGA_II.Evolve_A_Generation_Handle  = self.Evolve_A_Generation
@@ -33,7 +37,7 @@ class NSGA_II_With_Constraint_And_R_Dominance(NSGA_II):
         return NSGA_II.Is_Dominance(self, Fir_Individual, Sec_Individual)     
     
     def run(self, Init_Population, population_size, num_generations):
-        self.Num_generations = num_generations
+
         return NSGA_II.run(self, Init_Population, population_size, num_generations)
     
     @Decorator_OtherDefine_NSGAII.Cal_Infeasible_Degree_Threshold
